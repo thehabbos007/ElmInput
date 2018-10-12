@@ -1,0 +1,87 @@
+<!--
+Den primære del af koden er i main.elm filen.
+skrevet af Ahmad Sattar
+kodet i Elm/HTML/JS
+heltal: Int
+text: String
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="UTF8">
+</head>
+<body>
+	<div id="main"></div>
+	<button id="gem">Gem</button>
+	<button id="slet">Slet Alle</button>
+	<script src="build/main.js"></script>
+	<script>
+	/*
+	Elm virker på den måde, at programmer som er skrevet i det kompileres til javascript.
+	Det kompileres, da Elm i sig selv afhænger af værdityper og funktionalitet.
+	
+	Typer gør, at der er teoretisk set ingen mulige fejl i programemr i Elm, da alle mulige fejl 
+	tages højde for.
+
+	Funktionalitetsbegrebet betyder, at funktioner ikke som sådan kan "ændre" noget. 
+	Funktioner tager noget data, gør noget ved data og spytter nyt data ud. Ændringer sker ikke, men retter
+	laves nye versioner af dataen med mulige nye værdier. Det kan lyde som spild af hukommelse, men
+	Elm optimerer dette ved, at samme data genbrgues og refereres til så kun nyt data bliver allokreret.
+
+	Et andet vigtigt begreb i Elm er ensrettethed. Modellen går en vej ned igennem programmet.og i 
+	stedet for, at man kan gå tilbage med modellen for at ændre værdier, fortsætter programmet ned til
+	Viewet, og derfra gentages der når der kommer en meddelelse om at der skal opdateres om igen. 
+	Det går rundt på nogen lunde en cirkulær måde som går én vej.
+
+	Det er en simpel beskrivelse, da der er mere til det.
+
+
+	*/
+	// Herunder defineres hvor på siden Elm programmet startes henne
+	var mainDiv = document.getElementById('main');
+	var app = Elm.Main.embed(mainDiv);
+
+	// Denne del kunne blive skrevet med Elm Ports, men for at gøre det simpelt skrives det i JS
+	// Dette er til for at gemme data lokalt i localStorage
+	document.getElementById("gem").onclick = () => {
+		let name = document.getElementById("name").value;
+		if (name != "") {
+			let sum = document.getElementById("sum").value;
+			let localStorageObject = { 'name': name, 'sum': parseInt(sum, 10) };
+			localStorage.setItem(name, JSON.stringify(localStorageObject));
+			portData();
+		}		
+	}
+
+	// Igen laves knappen i JS/HTML, og denne knap fjerner alt fra localStorage
+	document.getElementById("slet").onclick = () => {
+		localStorage.clear();	
+		portData();
+	}
+
+	// Denne funktion er lidt speciel, da den bliver registreret for hver "x" knap i Elm, men lavet her.
+	// Den er til for at fjerne individuelle elementer på listen
+	function deleteElement(ref) {
+		localStorage.removeItem(ref.getAttribute('data-id'));
+		portData();
+
+	}
+
+
+	// Denne funktion sorterer data fra localStorage, og derfra sender det hen til Elm. ved "ports"
+	function portData() {
+		var filtering = (i) => JSON.parse(localStorage.getItem(localStorage.key(i)));
+		var list = Array.apply(0, new Array(localStorage.length)).map((o, i) => filtering(i));
+		list = list.filter((w) => {return w.hasOwnProperty('name')});
+
+		app.ports.localStorageJs.send(list);
+	}
+
+
+	// Første kald der sender data, for at sende gamle indsendninger af data
+	portData();
+
+	</script>
+</body>
+</html>
